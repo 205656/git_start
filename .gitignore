@@ -1,6 +1,9 @@
 # CakePHP 3
 
 /vendor/*
+/java/*
+/demo-laravel/*
+/node_modules/*
 /config/app.php
 
 /tmp/cache/models/*
