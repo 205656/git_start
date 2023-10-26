@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>通过 Vue 组件通信实现父组件监听并处理子组件事件1</title>
+    <link rel="stylesheet" href="./element-2.10/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.21/dist/vue.js"></script>
+    <script src="https://www.itxst.com/package/sortable/Sortable.min.js"></script>
+    <script src="https://www.itxst.com/package/vuedraggable/vuedraggable.umd.min.js"></script>
+    <script src="./element-2.10/index.js"></script>
+
+</head>
+<body>
+    <div id="app">
+        <template>
+            <el-menu class="menu" :default-openeds="defaultOpeneds">
+                <draggable v-model="menus">
+                    <template v-for="(menu, index) in menus">
+                        <el-submenu v-if="menu.children" :index="`${index}`">
+                            <template slot="title">
+                                <draggable :element="'span'" :group="{name:'group'+menu.id}" v-model="menu.title">
+                                    {{ menu.name }}
+                                </draggable>
+                                <el-button type="primary" size="small" icon="el-icon-plus" @click="addChildMenu(menu)">
+                                    添加
+                                </el-button>
+                            </template>
+                            <draggable :element="`ul`" :group="{name:'group'+menu.id}" v-model="menu.children">
+                                <li v-for="(child, childIndex) in menu.children" :key="child.id">
+                                    <el-menu-item :index="`${index}-${childIndex}`">
+                                        <draggable :element="'span'" :group="{name:'group'+child.id}" v-model="child.title">
+                                            {{ child.name }}
+                                        </draggable>
+                                        <el-button type="danger" size="small" icon="el-icon-delete" @click="removeChildMenu(menu, child)">
+                                            删除
+                                        </el-button>
+                                        <el-button type="primary" size="small" icon="el-icon-plus" @click="addChildMenu(child)">
+                                            添加
+                                        </el-button>
+                                    </el-menu-item>
+                                </li>
+                            </draggable>
+                        </el-submenu>
+                        <li v-else :key="menu.id">
+                            <draggable v-model="menus" :group="{name:'group'+menu.id}">
+                                <el-menu-item :index="`${index}`">
+                                    <draggable :element="'span'" :group="{name:'group'+menu.id}" v-model="menu.title">
+                                        {{ menu.name }}
+                                    </draggable>
+                                    <el-button type="danger" size="small" icon="el-icon-delete" @click="removeMenu(menu)">
+                                        删除
+                                    </el-button>
+                                </el-menu-item>
+                            </draggable>
+                        </li>
+                    </template>
+                </draggable>
+            </el-menu>
+        </template>
+    </div>
+</body>
+</html>
+<script>
+    Vue.component('vuedraggable', window.vuedraggable.name)
+    var app = new Vue({
+        el: '#app',
+        components: {
+            vuedraggable,
+        },
+
+        data() {
+            return {
+                defaultOpeneds: [],
+                menus: [
+                    { id: 1, name: '菜单1', title: '标题1' },
+                    { id: 2, name: '菜单2', title: '标题2', children: [
+                            { id: 3, name: '子菜单1', title: '子标题1' },
+                            { id: 4, name: '子菜单2', title: '子标题2' }
+                        ] }
+                ],
+            };
+        },
+
+        methods: {
+            addChildMenu(menu) {
+                const id = Date.now()
+                const child = {id, name: '子菜单', title: '子标题'}
+                if (!menu.children) {
+                    this.$set(menu, 'children', [])
+                }
+                menu.children.push(child)
+                this.defaultOpeneds.push(menu.id.toString())
+            },
+            removeChildMenu(menu, child) {
+                const index = menu.children.indexOf(child)
+                if (index > -1) {
+                    menu.children.splice(index, 1)
+                }
+            },
+            removeMenu(menu) {
+                const index = this.menus.indexOf(menu)
+                if (index > -1) {
+                    this.menus.splice(index, 1)
+                }
+            },
+        },
+
+    });
+</script>
